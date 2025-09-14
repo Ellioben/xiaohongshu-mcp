@@ -3,10 +3,12 @@ package xiaohongshu
 import (
 	"context"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/input"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/pkg/errors"
 )
@@ -104,7 +106,10 @@ func submitPublish(page *rod.Page, title, content string) error {
 	time.Sleep(1 * time.Second)
 
 	if contentElem, ok := getContentElement(page); ok {
-		contentElem.MustInput(content)
+		// 使用新的标签处理函数
+		if err := inputContentWithTags(contentElem, content); err != nil {
+			return errors.Wrap(err, "输入内容失败")
+		}
 	} else {
 		return errors.New("没有找到内容输入框")
 	}
@@ -117,6 +122,109 @@ func submitPublish(page *rod.Page, title, content string) error {
 	time.Sleep(3 * time.Second)
 
 	return nil
+}
+
+// inputContentWithTags 处理包含标签的内容输入
+func inputContentWithTags(contentElem *rod.Element, content string) error {
+	// 解析内容，分离普通文本和标签
+	parts := parseContentWithTags(content)
+
+	for _, part := range parts {
+		if part.IsTag {
+			// 处理标签
+			if err := inputTag(contentElem, part.Text); err != nil {
+				slog.Warn("处理标签失败，作为普通文本输入", "tag", part.Text, "error", err)
+				// 如果标签处理失败，作为普通文本输入
+				contentElem.MustInput(part.Text)
+			}
+		} else {
+			// 输入普通文本
+			contentElem.MustInput(part.Text)
+		}
+		// 短暂延迟，确保输入被正确处理
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	return nil
+}
+
+// ContentPart 内容片段
+type ContentPart struct {
+	Text  string
+	IsTag bool
+}
+
+// parseContentWithTags 解析内容，分离普通文本和标签
+func parseContentWithTags(content string) []ContentPart {
+	var parts []ContentPart
+
+	// 使用正则表达式匹配标签 #标签名
+	tagRegex := regexp.MustCompile(`#([^\s#]+)`)
+
+	lastIndex := 0
+	matches := tagRegex.FindAllStringSubmatchIndex(content, -1)
+
+	for _, match := range matches {
+		// 添加标签前的普通文本
+		if match[0] > lastIndex {
+			normalText := content[lastIndex:match[0]]
+			if normalText != "" {
+				parts = append(parts, ContentPart{Text: normalText, IsTag: false})
+			}
+		}
+
+		// 添加标签
+		tagText := content[match[0]:match[1]] // 包含#的完整标签
+		parts = append(parts, ContentPart{Text: tagText, IsTag: true})
+
+		lastIndex = match[1]
+	}
+
+	// 添加最后剩余的普通文本
+	if lastIndex < len(content) {
+		remainingText := content[lastIndex:]
+		if remainingText != "" {
+			parts = append(parts, ContentPart{Text: remainingText, IsTag: false})
+		}
+	}
+
+	// 如果没有找到标签，整个内容作为普通文本
+	if len(parts) == 0 {
+		parts = append(parts, ContentPart{Text: content, IsTag: false})
+	}
+
+	return parts
+}
+
+// inputTag 输入标签并处理下拉框
+func inputTag(contentElem *rod.Element, tagText string) error {
+	// 输入 # 符号触发标签模式
+	contentElem.MustInput("#")
+	time.Sleep(500 * time.Millisecond) // 等待下拉框出现
+
+	// 输入标签名称（去掉#符号）
+	tagName := strings.TrimPrefix(tagText, "#")
+	contentElem.MustInput(tagName)
+	time.Sleep(800 * time.Millisecond) // 等待下拉框更新
+
+	// 尝试选择第一个标签选项
+	if err := selectFirstTagOption(contentElem); err != nil {
+		slog.Warn("选择标签选项失败", "error", err)
+	}
+
+	return nil
+}
+
+// selectFirstTagOption 选择第一个标签选项
+func selectFirstTagOption(contentElem *rod.Element) error {
+	// 等待下拉框出现
+	time.Sleep(300 * time.Millisecond)
+
+	// 如果找不到下拉框选项，尝试按回车键确认
+	contentElem.MustType(input.Enter)
+	time.Sleep(200 * time.Millisecond)
+
+	return errors.New("未找到标签下拉框选项")
 }
 
 // 查找内容输入框 - 使用Race方法处理两种样式
