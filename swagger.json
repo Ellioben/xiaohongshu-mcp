@@ -1,0 +1,844 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "小红书 MCP 服务 API",
+    "description": "小红书 Model Context Protocol (MCP) 服务，提供小红书平台的功能接口",
+    "version": "2.0.0",
+    "contact": {
+      "name": "API Support",
+      "url": "http://www.swagger.io/support",
+      "email": "support@swagger.io"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:18060",
+      "description": "开发环境"
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "认证相关接口"
+    },
+    {
+      "name": "publish",
+      "description": "内容发布相关接口"
+    },
+    {
+      "name": "feeds",
+      "description": "内容获取相关接口"
+    },
+    {
+      "name": "search",
+      "description": "搜索相关接口"
+    },
+    {
+      "name": "health",
+      "description": "健康检查接口"
+    },
+    {
+      "name": "mcp",
+      "description": "MCP协议接口"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["health"],
+        "summary": "健康检查",
+        "description": "检查服务健康状态",
+        "responses": {
+          "200": {
+            "description": "服务正常",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/login/status": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "检查登录状态",
+        "description": "检查小红书账号的登录状态",
+        "responses": {
+          "200": {
+            "description": "检查成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginStatusResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "服务器内部错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publish": {
+      "post": {
+        "tags": ["publish"],
+        "summary": "发布内容到小红书",
+        "description": "发布图文内容到小红书平台",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "发布成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "发布失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/list": {
+      "get": {
+        "tags": ["feeds"],
+        "summary": "获取推荐列表",
+        "description": "获取小红书首页推荐内容列表",
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedsListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "获取失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/search": {
+      "get": {
+        "tags": ["search"],
+        "summary": "搜索小红书内容",
+        "description": "根据关键词搜索小红书内容",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "description": "搜索关键词",
+            "schema": {
+              "type": "string",
+              "example": "美食"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "搜索成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedsListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "缺少关键词参数",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "搜索失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/detail": {
+      "post": {
+        "tags": ["feeds"],
+        "summary": "获取Feed详情",
+        "description": "获取小红书笔记的详细信息",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedDetailRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "获取成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedDetailResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "获取失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feeds/comment": {
+      "post": {
+        "tags": ["feeds"],
+        "summary": "发表评论",
+        "description": "发表评论到小红书笔记",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostCommentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "发表成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostCommentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "请求参数错误",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "发表失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp": {
+      "post": {
+        "tags": ["mcp"],
+        "summary": "MCP协议接口",
+        "description": "Model Context Protocol (MCP) 协议接口，支持JSON-RPC 2.0",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JSONRPCRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "MCP响应",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JSONRPCResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "错误信息"
+          },
+          "code": {
+            "type": "string",
+            "description": "错误代码"
+          },
+          "details": {
+            "type": "object",
+            "description": "错误详情"
+          }
+        }
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object",
+            "description": "响应数据"
+          },
+          "message": {
+            "type": "string",
+            "description": "响应消息"
+          }
+        }
+      },
+      "HealthResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "example": "healthy"
+                  },
+                  "service": {
+                    "type": "string",
+                    "example": "xiaohongshu-mcp"
+                  },
+                  "account": {
+                    "type": "string",
+                    "example": "ai-report"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "example": "now"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "LoginStatusResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "is_logged_in": {
+                    "type": "boolean",
+                    "example": false
+                  },
+                  "username": {
+                    "type": "string",
+                    "example": "xiaohongshu-mcp"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PublishRequest": {
+        "type": "object",
+        "required": ["title", "content", "images"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "发布内容的标题",
+            "example": "美食分享"
+          },
+          "content": {
+            "type": "string",
+            "description": "发布内容的正文",
+            "example": "今天分享一道美味的家常菜"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "图片路径或URL列表",
+            "example": ["https://example.com/image.jpg"]
+          }
+        }
+      },
+      "PublishResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "example": "美食分享"
+                  },
+                  "content": {
+                    "type": "string",
+                    "example": "今天分享一道美味的家常菜"
+                  },
+                  "images": {
+                    "type": "integer",
+                    "example": 1
+                  },
+                  "status": {
+                    "type": "string",
+                    "example": "发布完成"
+                  },
+                  "post_id": {
+                    "type": "string",
+                    "example": "123456789"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "FeedsListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "feeds": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Feed"
+                    }
+                  },
+                  "count": {
+                    "type": "integer",
+                    "example": 10
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Feed": {
+        "type": "object",
+        "properties": {
+          "xsecToken": {
+            "type": "string",
+            "example": "abc123"
+          },
+          "id": {
+            "type": "string",
+            "example": "123456789"
+          },
+          "modelType": {
+            "type": "string",
+            "example": "normal"
+          },
+          "noteCard": {
+            "$ref": "#/components/schemas/NoteCard"
+          },
+          "index": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      },
+      "NoteCard": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "normal"
+          },
+          "displayTitle": {
+            "type": "string",
+            "example": "美食分享"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "interactInfo": {
+            "$ref": "#/components/schemas/InteractInfo"
+          },
+          "cover": {
+            "$ref": "#/components/schemas/Cover"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user123"
+          },
+          "nickname": {
+            "type": "string",
+            "example": "美食达人"
+          },
+          "nickName": {
+            "type": "string",
+            "example": "美食达人"
+          },
+          "avatar": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "xsecToken": {
+            "type": "string",
+            "example": "abc123"
+          }
+        }
+      },
+      "InteractInfo": {
+        "type": "object",
+        "properties": {
+          "liked": {
+            "type": "boolean",
+            "example": false
+          },
+          "likedCount": {
+            "type": "string",
+            "example": "100"
+          },
+          "sharedCount": {
+            "type": "string",
+            "example": "50"
+          },
+          "commentCount": {
+            "type": "string",
+            "example": "20"
+          },
+          "collectedCount": {
+            "type": "string",
+            "example": "30"
+          },
+          "collected": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "Cover": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer",
+            "example": 800
+          },
+          "height": {
+            "type": "integer",
+            "example": 600
+          },
+          "url": {
+            "type": "string",
+            "example": "https://example.com/cover.jpg"
+          },
+          "fileId": {
+            "type": "string",
+            "example": "file123"
+          },
+          "urlPre": {
+            "type": "string",
+            "example": "https://example.com/cover_pre.jpg"
+          },
+          "urlDefault": {
+            "type": "string",
+            "example": "https://example.com/cover_default.jpg"
+          },
+          "infoList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImageInfo"
+            }
+          }
+        }
+      },
+      "ImageInfo": {
+        "type": "object",
+        "properties": {
+          "imageScene": {
+            "type": "string",
+            "example": "cover"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          }
+        }
+      },
+      "FeedDetailRequest": {
+        "type": "object",
+        "required": ["feed_id", "xsec_token"],
+        "properties": {
+          "feed_id": {
+            "type": "string",
+            "description": "小红书笔记ID",
+            "example": "123456789"
+          },
+          "xsec_token": {
+            "type": "string",
+            "description": "访问令牌",
+            "example": "abc123"
+          }
+        }
+      },
+      "FeedDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "feed_id": {
+                    "type": "string",
+                    "example": "123456789"
+                  },
+                  "data": {
+                    "type": "object",
+                    "description": "Feed详细信息"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "PostCommentRequest": {
+        "type": "object",
+        "required": ["feed_id", "xsec_token", "content"],
+        "properties": {
+          "feed_id": {
+            "type": "string",
+            "description": "小红书笔记ID",
+            "example": "123456789"
+          },
+          "xsec_token": {
+            "type": "string",
+            "description": "访问令牌",
+            "example": "abc123"
+          },
+          "content": {
+            "type": "string",
+            "description": "评论内容",
+            "example": "很棒的内容！"
+          }
+        }
+      },
+      "PostCommentResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SuccessResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "feed_id": {
+                    "type": "string",
+                    "example": "123456789"
+                  },
+                  "success": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "评论发表成功"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "JSONRPCRequest": {
+        "type": "object",
+        "required": ["jsonrpc", "method", "id"],
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "example": "2.0"
+          },
+          "method": {
+            "type": "string",
+            "description": "MCP方法名",
+            "enum": ["initialize", "tools/list", "tools/call", "notifications/initialized", "notifications/cancelled"],
+            "example": "tools/call"
+          },
+          "params": {
+            "type": "object",
+            "description": "方法参数"
+          },
+          "id": {
+            "type": "string",
+            "description": "请求ID",
+            "example": "1"
+          }
+        }
+      },
+      "JSONRPCResponse": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "example": "2.0"
+          },
+          "result": {
+            "type": "object",
+            "description": "响应结果"
+          },
+          "error": {
+            "$ref": "#/components/schemas/JSONRPCError"
+          },
+          "id": {
+            "type": "string",
+            "description": "请求ID",
+            "example": "1"
+          }
+        }
+      },
+      "JSONRPCError": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "description": "错误代码",
+            "example": -32601
+          },
+          "message": {
+            "type": "string",
+            "description": "错误信息",
+            "example": "Method not found"
+          },
+          "data": {
+            "type": "object",
+            "description": "错误详情"
+          }
+        }
+      }
+    }
+  }
+}

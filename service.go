@@ -90,7 +90,6 @@ func (s *XiaohongshuService) PublishContent(ctx context.Context, req *PublishReq
 	content := xiaohongshu.PublishImageContent{
 		Title:      req.Title,
 		Content:    req.Content,
-		Tags:       req.Tags,
 		ImagePaths: imagePaths,
 	}
 
